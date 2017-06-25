@@ -46,7 +46,8 @@ codecs = {
         "preset_transparent": "-V 3",   # ~175 kb/s
         "preset_low": "-V 5",           # ~130 kb/s
         "additional_args": "",
-        "suffix": "mp3"
+        "suffix": "mp3",
+        "version": None     # To be filled in at runtime
     },
     "oggvorbis": {
         "encoder": "oggenc",
@@ -61,7 +62,8 @@ codecs = {
         "preset_transparent": "-q 5",   # ~160 kb/s
         "preset_low": "-q 3",           # ~112 kb/s
         "additional_args": "",
-        "suffix": "ogg"
+        "suffix": "ogg",
+        "version": None     # To be filled in at runtime
     },
     "opus": {
         "encoder": "opusenc",
@@ -73,16 +75,17 @@ codecs = {
         "quality_min": 12,
         "preset_default": "--bitrate 96",
         "preset_high": "--bitrate 192",
-        "preset_transparent": "--bitrate 128",
-        "preset_low": "--bitrate 96",
+        "preset_transparent": "--bitrate 112",
+        "preset_low": "--bitrate 82",
         "additional_args": "--framesize=60",
-        "suffix": "opus"
+        "suffix": "opus",
+        "version": None     # To be filled in at runtime
     }
 }
 
-VersionDict = Dict[str, str]    # A dict of encoder name and its version
-def check_executables(codecs: CodecsDict) -> VersionDict:
-    versions_result = {}
+VersionList = List[Tuple[str, str]]    # Tuples ofencoder name and its version
+def check_executables(codecs: CodecsDict) -> VersionList:
+    versions_result = []
 
     for codec in codecs:
         encoder = codecs.get(codec).get("encoder")
@@ -91,11 +94,11 @@ def check_executables(codecs: CodecsDict) -> VersionDict:
             enc_out = sp.Popen([encoder, "--version"], stdout=sp.PIPE)
         except FileNotFoundError:
             print("{} encoder not found".format(encoder))
-            versions_result[encoder] = "MISSING"
+            versions_result.append((codec, "MISSING"))
         else:
             version_bytes = enc_out.stdout.read()
             version_str = version_bytes.decode("utf-8")
-            versions_result[encoder] = version_str.split("\n")[0]
+            versions_result.append((codec, version_str.split("\n")[0]))
 
     return versions_result
 
@@ -163,6 +166,35 @@ def greatest_common_dir(directories: List[str]) -> str:
 
     return common_path
 
+def codecs_info(codecs_dict: CodecsDict) -> str:
+    info = []
+
+    for k in codecs_dict:
+        v = codecs_dict.get(k)
+
+        if v["version"] == "MISSING":
+            m = "Codec: {}\n"\
+                "Encoder not found. You need to install "\
+                "the ‘{}’ program.\n".format(k, v["encoder"])
+            info.append(m)
+        else:
+            m = "Codec: {}\n"\
+                "Encoder: {}\n"\
+                "Constant bitrate from {} to {} kb/s\n"\
+                "Variable bitrate quality from {} (min) to {} (max)\n"\
+                "Presets:\n"\
+                "    encoder default: {}\n"\
+                "    high:            {}\n"\
+                "    transparent:     {}\n"\
+                "    low:             {}\n".format(
+                    k, v["version"], v["bitrate_min"], v["bitrate_max"],
+                    v["quality_min"], v["quality_max"],
+                    v["preset_default"], v["preset_high"],
+                    v["preset_transparent"], v["preset_low"])
+            info.append(m)
+
+    return "\n".join(info)
+
 def get_flac_files(all_files: List[str]) -> List[str]:
     flacs = [f for f in all_files if f.endswith("flac")]
 
@@ -183,7 +215,18 @@ def get_cover_files(all_files: List[str], c_template: List[str]) -> List[str]:
 if __name__ == "__main__":
     args = parser.parse_args()
     print(args.dirs)
-    print(check_executables(codecs))
+
+    # Check whether encoders are present on the system
+    ex_v = check_executables(codecs)
+
+    # Update codecs dict with encoder versions
+    for c, v in ex_v:
+        codecs[c]["version"] = v
+
+    if args.info:
+        print(codecs_info(codecs))
+        sys.exit()
+
     m = find_music(args.dirs)
     print(m)
     print(greatest_common_dir([t[0] for t in m]))
