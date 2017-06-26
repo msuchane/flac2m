@@ -95,13 +95,12 @@ def check_executables(codecs: CodecsDict) -> VersionList:
         encoder = codecs.get(codec).get("encoder")
 
         try:
-            enc_out = sp.Popen([encoder, "--version"], stdout=sp.PIPE)
+            enc_process = sp.run([encoder, "--version"], stdout=sp.PIPE)
         except FileNotFoundError:
             print("{} encoder not found".format(encoder))
             versions_result.append((codec, "MISSING"))
         else:
-            version_bytes = enc_out.stdout.read()
-            version_str = version_bytes.decode("utf-8")
+            version_str = enc_process.stdout.decode("utf-8")
             versions_result.append((codec, version_str.split("\n")[0]))
 
     return versions_result
