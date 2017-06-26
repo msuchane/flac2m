@@ -12,8 +12,8 @@ exgroup.add_argument("-b", "--bitrate", type=int,
 parser.add_argument("-c", "--codec", choices=["mp3", "oggvorbis", "opus"],
                     default="opus",
                     help="Audio codec to convert FLAC files into")
-parser.add_argument("-C", "--cover", nargs="*",
-                    help="Cover image filenames to copy over")
+parser.add_argument("-C", "--copy", nargs="*",
+                    help="Filenames to copy over unchanged (useful for cover images)")
 parser.add_argument("dirs", nargs="*", default=["."],
                     help="Directories to search for FLAC files")
 parser.add_argument("-i", "--info", action="store_true",
@@ -203,17 +203,18 @@ def get_flac_files(all_files: List[str]) -> List[str]:
 
     return flacs
 
-def get_cover_files(all_files: List[str], c_template: List[str]) -> List[str]:
+def get_files_to_copy(all_files: List[str], c_template: List[str]) -> List[str]:
     # Not a list comprehension here because this can potentially be faster
-    # considering there should only be a few covers and many different files
-    covers = []
+    # considering there should only be a few covers / copy file templates
+    # and many actual files
+    to_copy = []
 
     for c in c_template:
         for f in all_files:
             if f == c:
-                covers.append(f)
+                to_copy.append(f)
 
-    return covers
+    return to_copy
 
 def create_conversion_command(
         infile: str, outfile: str, args: argparse.Namespace,
