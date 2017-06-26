@@ -26,7 +26,7 @@ def create_parser() -> argparse.ArgumentParser:
                          choices=["default", "low", "transp", "high"],
                          help="Quality preset: default for encoder, low/OK, "
                               "just transparent, high")
-    exgroup.add_argument("-q", "--quality", type=int, choices=[1, 2, 3, 4, 5],
+    exgroup.add_argument("-q", "--quality", type=int,
                          help="Variable bitrate quality; 1=low, 5=high")
     parser.add_argument("-s", "--substitutef",
                         help="Substitution in filenames; enter as \"old/new\"")
@@ -240,8 +240,8 @@ def evaluate_substitution(subs: str) -> SubsPair:
     split_subs = subs.split("/")
 
     if len(split_subs) != 2:
-        sys.exit("‘{}’: invalid substitution format. "\
-                 "Expected ‘old/new’.".format(subs))
+        sys.exit("{}: ‘{}’: invalid substitution format. "\
+                 "Expected ‘old/new’.".format(sys.argv[0], subs))
 
     return (split_subs[0], split_subs[1])
 
@@ -285,10 +285,23 @@ def create_in_out_paths(music_map: MusicMap, out_root: str,
 
 def create_quality_option(args: argparse.Namespace,
                           codec_props: CodecProps) -> List[str]:
-    # TODO: check min and max bitrate/quality bounds
     if args.bitrate:
+        min_b = codec_props["bitrate_min"]
+        max_b = codec_props["bitrate_max"]
+
+        if args.bitrate < min_b or args.bitrate > max_b:
+            sys.exit("{}: error: Bitrate must be between {} and {}.".format(
+                sys.argv[0], min_b, max_b))
+
         quality_option = codec_props["bitrate_arg"] + args.bitrate
     elif args.quality:
+        min_q = codec_props["quality_min"]
+        max_q = codec_props["quality_max"]
+
+        if args.quality < min_q or args.quality > max_q:
+            sys.exit("{}: error: Quality must be between {} and {}.".format(
+                sys.argv[0], min_q, max_q))
+
         quality_option = codec_props["quality_arg"] + args.quality
     elif args.preset:
         if args.preset == "high":
@@ -379,9 +392,9 @@ if __name__ == "__main__":
         subsd = None
 
     music_map = find_music(args.dirs)
-    print(music_map)
+    # print(music_map)
     in_out_list = create_in_out_paths(music_map, args.output, subsf, subsd)
-    print(in_out_list)
+    # print(in_out_list)
 
     # for infile, outfile in in_out_list:
     #     print(create_conversion_command(infile, outfile, args, codec_props))
