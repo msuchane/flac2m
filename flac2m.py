@@ -217,9 +217,10 @@ def get_cover_files(all_files: List[str], c_template: List[str]) -> List[str]:
     return covers
 
 def create_conversion_command(
-        infile: str, outfile: str, args: argparse.Namespace) -> list:
+        infile: str, outfile: str, args: argparse.Namespace,
+        codecs_dict: CodecsDict = codecs) -> list:
     codec = args.codec
-    v = codecs[codec]
+    v = codecs_dict[codec]
     encoder = v["encoder"]
     out_arg = v["output_arg"]
     additional = v["additional_args"]
