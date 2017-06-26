@@ -374,7 +374,7 @@ def run_conversion_command(in_out_list: InOutList,
         except Exception as e:
             # Conversion failed somehow. Show most recent encoder output
             # and the Python exception that happened.
-            error_exit("{}\n\n{}".format(process.stderr.decode("utf-8", e)))
+            error_exit("{}\n\n{}".format(process.stderr.decode("utf-8"), e))
 
         # If the encoder itself failed, stop the conversion and show
         # its error message:
