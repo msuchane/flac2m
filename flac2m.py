@@ -283,8 +283,27 @@ def create_in_out_paths(music_map: MusicMap, out_root: str,
 
     return in_out_list
 
+def create_quality_option(args: argparse.Namespace,
+                          codec_props: CodecProps) -> List[str]:
+    # TODO: check min and max bitrate/quality bounds
+    if args.bitrate:
+        quality_option = codec_props["bitrate_arg"] + args.bitrate
+    elif args.quality:
+        quality_option = codec_props["quality_arg"] + args.quality
+    elif args.preset:
+        if args.preset == "high":
+            quality_option = codec_props["preset_high"]
+        elif args.preset == "low":
+            quality_option = codec_props["preset_low"]
+        else:
+            quality_option = codec_props["preset_transparent"]
+    else:   # Default case
+        quality_option = codec_props["preset_transparent"]
+
+    return quality_option
+
 def create_conversion_command(infile: str, outfile: str,
-                              args: argparse.Namespace,
+                              quality_option: List[str],
                               codec_props: CodecProps) -> list:
     assert infile.endswith(".flac"), "Not a FLAC file: {}".format(infile)
 
@@ -296,22 +315,6 @@ def create_conversion_command(infile: str, outfile: str,
 
     # Add suffix to output file stripped of '.flac'
     outfile = "{}.{}".format(outfile[:-5], suffix)
-
-    # TODO: check min and max bitrate/quality bounds
-    # TODO: possibly move this logic to another function
-    if args.bitrate:
-        quality_option = [v["bitrate_arg"], args.bitrate]
-    elif args.quality:
-        quality_option = [v["quality_arg"], args.quality]
-    elif args.preset:
-        if args.preset == "high":
-            quality_option = v["preset_high"]
-        elif args.preset == "low":
-            quality_option = v["preset_low"]
-        else:
-            quality_option = v["preset_transparent"]
-    else:   # Default case
-        quality_option = v["preset_transparent"]
 
     # command = [encoder, quality_option, additional, infile, out_arg, outfile]
     command = [encoder]
@@ -329,9 +332,11 @@ def run_conversion_command(in_out_list: InOutList,
     for infile, outfile in in_out_list:
         # Creating directories if necessary
         out_dir = os.path.split(outfile)[0]
+        quality_option = create_quality_option(args, codec_props)
         os.makedirs(out_dir, exist_ok=True)
 
-        comm = create_conversion_command(infile, outfile, args, codec_props)
+        comm = create_conversion_command(infile, outfile,
+                                         quality_option, codec_props)
         process = sp.run(comm)
 
 
@@ -378,8 +383,8 @@ if __name__ == "__main__":
     in_out_list = create_in_out_paths(music_map, args.output, subsf, subsd)
     print(in_out_list)
 
-    for infile, outfile in in_out_list:
-        print(create_conversion_command(infile, outfile, args, codec_props))
+    # for infile, outfile in in_out_list:
+    #     print(create_conversion_command(infile, outfile, args, codec_props))
     # print(greatest_common_dir([t[0] for t in m]))
     # print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
 
