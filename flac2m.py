@@ -317,6 +317,10 @@ def run_conversion_command(in_out_list: InOutList,
                            args: argparse.Namespace,
                            codec_props: CodecProps) -> None:
     for infile, outfile in in_out_list:
+        # Creating directories if necessary
+        out_dir = os.path.split(outfile)[0]
+        os.makedirs(out_dir, exist_ok=True)
+
         comm = create_conversion_command(infile, outfile, args, codec_props)
         process = sp.run(comm)
 
