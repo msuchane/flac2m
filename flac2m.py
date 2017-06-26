@@ -277,11 +277,11 @@ def create_in_out_paths(music_map: MusicMap, out_root: str,
 
 def create_conversion_command(infile: str, outfile: str,
                               args: argparse.Namespace,
-                              codecs_dict=codecs) -> list:
+                              codec_props: CodecProps) -> list:
     assert infile.endswith(".flac"), "Not a FLAC file: {}".format(infile)
 
     codec = args.codec
-    v = codecs_dict[codec]
+    v = codec_props
     encoder = v["encoder"]
     out_arg = v["output_arg"]
     additional = v["additional_args"]
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     print(in_out_list)
 
     for infile, outfile in in_out_list:
-        print(create_conversion_command(infile, outfile, args))
+        print(create_conversion_command(infile, outfile, args, codec_props))
     # print(greatest_common_dir([t[0] for t in m]))
     # print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
 
