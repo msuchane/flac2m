@@ -227,7 +227,7 @@ def subtract_common_path(full_path: str, common_path: str) -> str:
 
     return subtracted
 
-SubsPair = Tuple[str, str]      # A pair of string to use in substitution
+SubsPair = Tuple[str, str]      # A pair of strings to use in substitution
 
 def evaluate_substitution(subs: str) -> SubsPair:
     split_subs = subs.split("/")
