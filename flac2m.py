@@ -115,11 +115,15 @@ def check_executables(codecs: CodecsDict) -> VersionList:
 
 MusicDir = Tuple[str, List[str]]    # A tuple of dir name and all of its files
 MusicMap = List[MusicDir]           # List of dirs containing music
+
 def find_music(roots: List[str]) -> MusicMap:
     music_dirs = []
 
     for root in roots:
-        for directory in os.walk(root):
+        # Use absolute paths otherwise first letter can be lost somewhere
+        root_abs = os.path.abspath(root)
+
+        for directory in os.walk(root_abs):
             dir_name, cont_dirs, cont_files = directory
 
             for f in cont_files:
