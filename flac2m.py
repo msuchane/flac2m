@@ -41,7 +41,7 @@ CodecProps = Dict[str, Any]                 # Keywords as strings, their
                                             # values of any type
 CodecsDict = Dict[str, CodecProps]          # Dict of codec names and their
                                             # respective properties (also dict)
-codecs = {
+CODECS = {
     "mp3": {
         "encoder": "lame",
         "bitrate_arg": ["--cbr", "-b"],
@@ -337,20 +337,20 @@ if __name__ == "__main__":
     print(args.dirs)
 
     # Check whether encoders are present on the system
-    ex_v = check_executables(codecs)
+    ex_v = check_executables(CODECS)
 
     # Update codecs dict with encoder versions
     for c, v in ex_v:
-        codecs[c]["version"] = v
+        CODECS[c]["version"] = v
 
     if args.info:
-        print(codecs_info(codecs))
+        print(codecs_info(CODECS))
         sys.exit()
 
     # The selected codec to convert to
     sel_codec = args.codec
     # Relevant dict of type CodecProps
-    codec_props = codecs[sel_codec]
+    codec_props = CODECS[sel_codec]
 
     if codec_props["version"] == "MISSING":
         sys.exit("Couldn't find the ‘{}’ encoder. You need to install it "\
