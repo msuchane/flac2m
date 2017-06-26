@@ -40,52 +40,52 @@ CodecsDict = Dict[str, CodecProps]          # Dict of codec names and their
 codecs = {
     "mp3": {
         "encoder": "lame",
-        "bitrate_arg": "--cbr -b",
+        "bitrate_arg": ["--cbr", "-b"],
         "bitrate_max": 320,
         "bitrate_min": 32,
-        "quality_arg": "-V",
+        "quality_arg": ["-V"],
         "quality_max": 0,
         "quality_min": 6,
-        "preset_default": "-V 4",       # ~165 kb/s
-        "preset_high": "-V 0",          # ~245 kb/s
-        "preset_transparent": "-V 3",   # ~175 kb/s
-        "preset_low": "-V 5",           # ~130 kb/s
-        "additional_args": "",
-        "output_arg": "",
+        "preset_default": ["-V4"],      # ~165 kb/s
+        "preset_high": ["-V0"],         # ~245 kb/s
+        "preset_transparent": ["-V3"],  # ~175 kb/s
+        "preset_low": ["-V5"],          # ~130 kb/s
+        "additional_args": [],
+        "output_arg": [],
         "suffix": "mp3",
         "version": None     # To be filled in at runtime
     },
     "oggvorbis": {
         "encoder": "oggenc",
-        "bitrate_arg": "-b",
+        "bitrate_arg": ["-b"],
         "bitrate_max": 400,
         "bitrate_min": 16,
-        "quality_arg": "-q",
+        "quality_arg": ["-q"],
         "quality_max": 10,
         "quality_min": -1,
-        "preset_default": "-q 3",       # ~112 kb/s
-        "preset_high": "-q 7",          # ~224 kb/s
-        "preset_transparent": "-q 5",   # ~160 kb/s
-        "preset_low": "-q 3",           # ~112 kb/s
-        "additional_args": "",
-        "output_arg": "-o",
+        "preset_default": ["-q", "3"],      # ~112 kb/s
+        "preset_high": ["-q", "7"],         # ~224 kb/s
+        "preset_transparent": ["-q", "5"],  # ~160 kb/s
+        "preset_low": ["-q", "3"],          # ~112 kb/s
+        "additional_args": [],
+        "output_arg": ["-o"],
         "suffix": "ogg",
         "version": None     # To be filled in at runtime
     },
     "opus": {
         "encoder": "opusenc",
-        "bitrate_arg": "--cvbr --bitrate",
+        "bitrate_arg": ["--cvbr", "--bitrate"],
         "bitrate_max": 512,
         "bitrate_min": 12,
-        "quality_arg": "--vbr --bitrate",
+        "quality_arg": ["--vbr", "--bitrate"],
         "quality_max": 512,
         "quality_min": 12,
-        "preset_default": "--bitrate 96",
-        "preset_high": "--bitrate 192",
-        "preset_transparent": "--bitrate 112",
-        "preset_low": "--bitrate 82",
-        "additional_args": "--framesize=60",
-        "output_arg": "",
+        "preset_default": ["--bitrate", "96"],
+        "preset_high": ["--bitrate", "192"],
+        "preset_transparent": ["--bitrate", "112"],
+        "preset_low": ["--bitrate", "82"],
+        "additional_args": ["--framesize=60"],
+        "output_arg": [],
         "suffix": "opus",
         "version": None     # To be filled in at runtime
     }
@@ -291,16 +291,22 @@ def create_conversion_command(infile: str, outfile: str,
     outfile = "{}.{}".format(outfile[:-5], suffix)
 
     if args.bitrate:
-        quality_option = "{} {}".format(v["bitrate_arg"], args.bitrate)
+        quality_option = [v["bitrate_arg"], args.bitrate]
     elif args.quality:
-        quality_option = "{} {}".format(v["quality_arg"], args.quality)
+        quality_option = [v["quality_arg"], args.quality]
     elif args.preset:
         # TODO: other presets
-        quality_option = str(v["preset_transparent"])
+        quality_option = v["preset_transparent"]
     else:   # Default case
-        quality_option = str(v["preset_transparent"])
+        quality_option = v["preset_transparent"]
 
-    command = [encoder, quality_option, additional, infile, out_arg, outfile]
+    # command = [encoder, quality_option, additional, infile, out_arg, outfile]
+    command = [encoder]
+    command.extend(quality_option)
+    command.extend(additional)
+    command.append(infile)
+    command.extend(out_arg)
+    command.append(outfile)
 
     return command
 
