@@ -195,8 +195,11 @@ def codecs_info(codecs_dict: CodecsDict) -> str:
                 "    low:             {}\n".format(
                     k, v["version"], v["bitrate_min"], v["bitrate_max"],
                     v["quality_min"], v["quality_max"],
-                    v["preset_default"], v["preset_high"],
-                    v["preset_transparent"], v["preset_low"])
+                    # These arguments are stored as lists; concatenate them
+                    " ".join(v["preset_default"]),
+                    " ".join(v["preset_high"]),
+                    " ".join(v["preset_transparent"]),
+                    " ".join(v["preset_low"]))
             info.append(m)
 
     return "\n".join(info)
