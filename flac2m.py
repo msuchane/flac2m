@@ -246,7 +246,7 @@ InOutList = List[InOutPair]     # A list of said in/out pairs
 
 def create_in_out_paths(music_map: MusicMap, out_root: str,
                         subsf: SubsPair, subsd: SubsPair,
-                        copy=False, c_template=[]) -> InOutList:
+                        copy=False, c_template=None) -> InOutList:
     all_dirs = [t[0] for t in music_map]
     common_path = greatest_common_dir(all_dirs)
 
