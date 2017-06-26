@@ -26,6 +26,10 @@ exgroup.add_argument("-p", "--preset",
                           "just transparent, high")
 exgroup.add_argument("-q", "--quality", type=int, choices=[1, 2, 3, 4, 5],
                      help="Variable bitrate quality; 1=low, 5=high")
+parser.add_argument("-s", "--substitutef",
+                    help="Substitution in filenames; enter as \"old/new\"")
+parser.add_argument("-S", "--substituted",
+                    help="Substitution in dir names; enter as \"old/new\"")
 parser.add_argument("-v", "--verbose", help="Show more progress messages",
                     action="store_true")
 
@@ -223,11 +227,23 @@ def subtract_common_path(full_path: str, common_path: str) -> str:
 
     return subtracted
 
+SubsPair = Tuple[str, str]      # A pair of string to use in substitution
+
+def evaluate_substitution(subs: str) -> SubsPair:
+    split_subs = subs.split("/")
+
+    if len(split_subs) != 2:
+        sys.exit("‘{}’: invalid substitution format. "\
+                 "Expected ‘old/new’.".format(subs))
+
+    return (split_subs[0], split_subs[1])
+
 InOutPair = Tuple[str, str]     # A pair of input path and output path
 InOutList = List[InOutPair]     # A list of said in/out pairs
 
-def create_in_out_paths(music_map: MusicMap, out_root: str, copy=False,
-                        c_template=[]) -> InOutList:
+def create_in_out_paths(music_map: MusicMap, out_root: str,
+                        subsf: SubsPair, subsd: SubsPair,
+                        copy=False, c_template=[]) -> InOutList:
     all_dirs = [t[0] for t in music_map]
     common_path = greatest_common_dir(all_dirs)
 
@@ -243,9 +259,18 @@ def create_in_out_paths(music_map: MusicMap, out_root: str, copy=False,
 
         unique_path = subtract_common_path(dir_path, common_path)
 
+        if subsd:
+            old, new = subsd
+            unique_path = unique_path.replace(old, new)
+
         for f in sel_files:
+            if subsf:
+                old, new = subsf
+                f.replace(old, new)
+
             in_path = os.path.join(dir_path, f)
             out_path = os.path.join(out_root, unique_path, f)
+
             in_out_list.append((in_path, out_path))
 
     return in_out_list
@@ -305,9 +330,21 @@ if __name__ == "__main__":
                  "in order to use the ‘{}’ codec.".format(
                      codec_props["encoder"], sel_codec))
 
+    # If the -s option has been selected, prepare substitution strings
+    if args.substitutef:
+        subsf = evaluate_substitution(args.substitutef)
+    else:
+        subsf = None
+
+    # If the -S option has been selected, prepare substitution strings
+    if args.substituted:
+        subsd = evaluate_substitution(args.substituted)
+    else:
+        subsd = None
+
     music_map = find_music(args.dirs)
     print(music_map)
-    in_out_list = create_in_out_paths(music_map, args.output)
+    in_out_list = create_in_out_paths(music_map, args.output, subsf, subsd)
     print(in_out_list)
 
     for infile, outfile in in_out_list:
