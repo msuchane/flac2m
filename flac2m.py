@@ -266,6 +266,7 @@ def create_in_out_paths(music_map: MusicMap, out_root: str,
 
         unique_path = subtract_common_path(dir_path, common_path)
 
+        # TODO: process substitutions in a separate function beforehand
         if subsd:
             old, new = subsd
             unique_path = unique_path.replace(old, new)
@@ -303,8 +304,12 @@ def create_conversion_command(infile: str, outfile: str,
     elif args.quality:
         quality_option = [v["quality_arg"], args.quality]
     elif args.preset:
-        # TODO: other presets
-        quality_option = v["preset_transparent"]
+        if args.preset == "high":
+            quality_option = v["preset_high"]
+        elif args.preset == "low":
+            quality_option = v["preset_low"]
+        else:
+            quality_option = v["preset_transparent"]
     else:   # Default case
         quality_option = v["preset_transparent"]
 
