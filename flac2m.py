@@ -263,7 +263,7 @@ def create_conversion_command(infile: str, outfile: str,
     suffix = v["suffix"]
 
     # Add suffix to output file stripped of '.flac'
-    outfile = "{}.{}".format(outfile[:4], suffix)
+    outfile = "{}.{}".format(outfile[:-5], suffix)
 
     if args.bitrate:
         quality_option = "{} {}".format(v["bitrate_arg"], args.bitrate)
@@ -305,8 +305,13 @@ if __name__ == "__main__":
                  "in order to use the ‘{}’ codec.".format(
                      codec_props["encoder"], sel_codec))
 
-    m = find_music(args.dirs)
-    print(m)
+    music_map = find_music(args.dirs)
+    print(music_map)
+    in_out_list = create_in_out_paths(music_map, args.output)
+    print(in_out_list)
+
+    for infile, outfile in in_out_list:
+        print(create_conversion_command(infile, outfile, args))
     # print(greatest_common_dir([t[0] for t in m]))
-    print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
+    # print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
 
