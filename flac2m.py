@@ -258,6 +258,16 @@ if __name__ == "__main__":
         print(codecs_info(codecs))
         sys.exit()
 
+    # The selected codec to convert to
+    sel_codec = args.codec
+    # Relevant dict of type CodecProps
+    codec_props = codecs[sel_codec]
+
+    if codec_props["version"] == "MISSING":
+        sys.exit("Couldn't find the ‘{}’ encoder. You need to install it "\
+                 "in order to use the ‘{}’ codec.".format(
+                     codec_props["encoder"], sel_codec))
+
     m = find_music(args.dirs)
     print(m)
     # print(greatest_common_dir([t[0] for t in m]))
