@@ -293,6 +293,8 @@ def create_conversion_command(infile: str, outfile: str,
     # Add suffix to output file stripped of '.flac'
     outfile = "{}.{}".format(outfile[:-5], suffix)
 
+    # TODO: check min and max bitrate/quality bounds
+    # TODO: possibly move this logic to another function
     if args.bitrate:
         quality_option = [v["bitrate_arg"], args.bitrate]
     elif args.quality:
