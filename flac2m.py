@@ -215,9 +215,46 @@ def get_files_to_copy(all_files: List[str], c_template: List[str]) -> List[str]:
 
     return to_copy
 
-def create_conversion_command(
-        infile: str, outfile: str, args: argparse.Namespace,
-        codecs_dict: CodecsDict = codecs) -> list:
+def subtract_common_path(full_path: str, common_path: str) -> str:
+    assert full_path.startswith(common_path), "No common path to subtract"
+
+    common_length = len(common_path)
+    subtracted = full_path[common_length+1:]
+
+    return subtracted
+
+InOutPair = Tuple[str, str]     # A pair of input path and output path
+InOutList = List[InOutPair]     # A list of said in/out pairs
+
+def create_in_out_paths(music_map: MusicMap, out_root: str, copy=False,
+                        c_template=[]) -> InOutList:
+    all_dirs = [t[0] for t in music_map]
+    common_path = greatest_common_dir(all_dirs)
+
+    in_out_list = []
+
+    for music_dir in music_map:
+        dir_path, files = music_dir
+
+        if copy:
+            sel_files = get_files_to_copy(files, c_template)
+        else:
+            sel_files = get_flac_files(files)
+
+        unique_path = subtract_common_path(dir_path, common_path)
+
+        for f in sel_files:
+            in_path = os.path.join(dir_path, f)
+            out_path = os.path.join(out_root, unique_path, f)
+            in_out_list.append((in_path, out_path))
+
+    return in_out_list
+
+def create_conversion_command(infile: str, outfile: str,
+                              args: argparse.Namespace,
+                              codecs_dict=codecs) -> list:
+    assert infile.endswith(".flac"), "Not a FLAC file: {}".format(infile)
+
     codec = args.codec
     v = codecs_dict[codec]
     encoder = v["encoder"]
@@ -225,8 +262,8 @@ def create_conversion_command(
     additional = v["additional_args"]
     suffix = v["suffix"]
 
-    # Add suffix to output file
-    outfile = "{}.{}".format(outfile, suffix)
+    # Add suffix to output file stripped of '.flac'
+    outfile = "{}.{}".format(outfile[:4], suffix)
 
     if args.bitrate:
         quality_option = "{} {}".format(v["bitrate_arg"], args.bitrate)
