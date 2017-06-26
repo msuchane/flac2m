@@ -10,6 +10,7 @@ exgroup = parser.add_mutually_exclusive_group()
 exgroup.add_argument("-b", "--bitrate", type=int,
                      help="Constant bitrate for lossy audio")
 parser.add_argument("-c", "--codec", choices=["mp3", "oggvorbis", "opus"],
+                    default="opus",
                     help="Audio codec to convert FLAC files into")
 parser.add_argument("-C", "--cover", nargs="*",
                     help="Cover image filenames to copy over")
@@ -46,6 +47,7 @@ codecs = {
         "preset_transparent": "-V 3",   # ~175 kb/s
         "preset_low": "-V 5",           # ~130 kb/s
         "additional_args": "",
+        "output_arg": "",
         "suffix": "mp3",
         "version": None     # To be filled in at runtime
     },
@@ -62,6 +64,7 @@ codecs = {
         "preset_transparent": "-q 5",   # ~160 kb/s
         "preset_low": "-q 3",           # ~112 kb/s
         "additional_args": "",
+        "output_arg": "-o",
         "suffix": "ogg",
         "version": None     # To be filled in at runtime
     },
@@ -78,6 +81,7 @@ codecs = {
         "preset_transparent": "--bitrate 112",
         "preset_low": "--bitrate 82",
         "additional_args": "--framesize=60",
+        "output_arg": "",
         "suffix": "opus",
         "version": None     # To be filled in at runtime
     }
@@ -212,6 +216,33 @@ def get_cover_files(all_files: List[str], c_template: List[str]) -> List[str]:
 
     return covers
 
+def create_conversion_command(
+        infile: str, outfile: str, args: argparse.Namespace) -> list:
+    codec = args.codec
+    v = codecs[codec]
+    encoder = v["encoder"]
+    out_arg = v["output_arg"]
+    additional = v["additional_args"]
+    suffix = v["suffix"]
+
+    # Add suffix to output file
+    outfile = "{}.{}".format(outfile, suffix)
+
+    if args.bitrate:
+        quality_option = "{} {}".format(v["bitrate_arg"], args.bitrate)
+    elif args.quality:
+        quality_option = "{} {}".format(v["quality_arg"], args.quality)
+    elif args.preset:
+        # TODO: other presets
+        quality_option = str(v["preset_transparent"])
+    else:   # Default case
+        quality_option = str(v["preset_transparent"])
+
+    command = [encoder, quality_option, additional, infile, out_arg, outfile]
+
+    return command
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     print(args.dirs)
@@ -229,5 +260,6 @@ if __name__ == "__main__":
 
     m = find_music(args.dirs)
     print(m)
-    print(greatest_common_dir([t[0] for t in m]))
+    # print(greatest_common_dir([t[0] for t in m]))
+    print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
 
