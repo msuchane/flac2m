@@ -287,7 +287,6 @@ def create_conversion_command(infile: str, outfile: str,
                               codec_props: CodecProps) -> list:
     assert infile.endswith(".flac"), "Not a FLAC file: {}".format(infile)
 
-    codec = args.codec
     v = codec_props
     encoder = v["encoder"]
     out_arg = v["output_arg"]
