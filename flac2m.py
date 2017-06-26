@@ -240,8 +240,8 @@ def evaluate_substitution(subs: str) -> SubsPair:
     split_subs = subs.split("/")
 
     if len(split_subs) != 2:
-        sys.exit("{}: ‘{}’: invalid substitution format. "\
-                 "Expected ‘old/new’.".format(sys.argv[0], subs))
+        error_exit("‘{}’: invalid substitution format. "\
+                 "Expected ‘old/new’.".format(subs))
 
     return (split_subs[0], split_subs[1])
 
@@ -290,8 +290,8 @@ def create_quality_option(args: argparse.Namespace,
         max_b = codec_props["bitrate_max"]
 
         if args.bitrate < min_b or args.bitrate > max_b:
-            sys.exit("{}: error: Bitrate must be between {} and {}.".format(
-                sys.argv[0], min_b, max_b))
+            error_exit("Bitrate must be between {} and {}.".format(
+                min_b, max_b))
 
         quality_option = codec_props["bitrate_arg"] + args.bitrate
     elif args.quality:
@@ -299,8 +299,8 @@ def create_quality_option(args: argparse.Namespace,
         max_q = codec_props["quality_max"]
 
         if args.quality < min_q or args.quality > max_q:
-            sys.exit("{}: error: Quality must be between {} and {}.".format(
-                sys.argv[0], min_q, max_q))
+            error_exit("Quality must be between {} and {}.".format(
+                min_q, max_q))
 
         quality_option = codec_props["quality_arg"] + args.quality
     elif args.preset:
@@ -350,7 +350,12 @@ def check_access(path, write=False):
 def run_conversion_command(in_out_list: InOutList,
                            args: argparse.Namespace,
                            codec_props: CodecProps) -> None:
-    for infile, outfile in in_out_list:
+    file_count = len(in_out_list)
+
+    for index, in_out in enumerate(in_out_list):
+        infile, outfile = in_out
+        print("Converting file {} out of {}…".format(index+1, file_count))
+
         # Creating directories if necessary
         out_dir = os.path.split(outfile)[0]
         quality_option = create_quality_option(args, codec_props)
@@ -358,7 +363,21 @@ def run_conversion_command(in_out_list: InOutList,
 
         comm = create_conversion_command(infile, outfile,
                                          quality_option, codec_props)
-        process = sp.run(comm)
+        try:
+            process = sp.run(comm, stdout=sp.DEVNULL, stderr=sp.PIPE)
+        except Exception as e:
+            # Conversion failed somehow. Show most recent encoder output
+            # and the Python exception that happened.
+            error_exit("{}\n\n{}".format(process.stderr.decode("utf-8", e)))
+
+        # If the encoder itself failed, stop the conversion and show
+        # its error message:
+        if process.returncode != 0:
+            error_exit("Encoding file ‘{}’ failed:\n\n{}".format(
+                infile, process.stderr.decode("utf-8")))
+
+def error_exit(message: str) -> None:
+    sys.exit("{}: error: {}".format(sys.argv[0], message))
 
 
 if __name__ == "__main__":
@@ -377,10 +396,20 @@ if __name__ == "__main__":
         print(codecs_info(CODECS))
         sys.exit()
 
+    # This will fail if the output directory cannot be created or it already
+    # exists and is not a directory
+    try:
+        os.makedirs(args.output, exist_ok=True)
+    except FileExistsError:
+        error_exit("‘{}’ exists and is not a directory.".format(
+            args.output))
+    except PermissionError:
+        error_exit("Cannot create output directory ‘{}’ "\
+                   "(insufficient permission).".format(args.output))
     # Check whether the output dir is accesible for writes
     if not check_access(args.output, write=True):
-        sys.exit("{}: error: Cannot write to output directory ‘{}’".format(
-            sys.argv[0], args.output))
+        error_exit("Cannot write to output directory ‘{}’".format(
+            args.output))
 
     # The selected codec to convert to
     sel_codec = args.codec
