@@ -130,8 +130,8 @@ def greatest_common_dir(directories: List[str]) -> str:
     Compares directory paths in list and returns the part that all of them
     have in common; i.e. ["/usr/bin", "/usr/share"] -> "/usr"
 
-    If there is only one directory, returns the innermost element; i.e.
-    ["/usr/bin"] -> "bin"
+    If there is only one directory, returns all except the innermost element;
+    i.e. ["/usr/share/man"] -> "/usr/share"
     """
     # The list of directories should never be empty
     assert len(directories) != 0, "No music directories to analyze"
@@ -140,9 +140,9 @@ def greatest_common_dir(directories: List[str]) -> str:
     # directory immediately containing music files
     if len(directories) == 1:
         split_dir = directories[0].split("/")
-        containing_dir = split_dir[-1]
+        all_except_containing_dir = split_dir[:-1]
 
-        return containing_dir
+        return "/".join(all_except_containing_dir)
 
     split_dirs = [d.split("/") for d in directories]
     common_elements = []
@@ -160,7 +160,6 @@ def greatest_common_dir(directories: List[str]) -> str:
                 break
 
         if common:
-            print("appending '{}'".format(path_element))
             common_elements.append(path_element)
 
         index += 1
