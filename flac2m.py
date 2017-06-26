@@ -13,6 +13,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-c", "--codec", choices=["mp3", "oggvorbis", "opus"],
                         default="opus",
                         help="Audio codec to convert FLAC files into")
+    # TODO: actually implement copying
     parser.add_argument("-C", "--copy", nargs="*",
                         help="Filenames to copy over unchanged "\
                              "(useful for cover images)")
@@ -32,6 +33,7 @@ def create_parser() -> argparse.ArgumentParser:
                         help="Substitution in filenames; enter as \"old/new\"")
     parser.add_argument("-S", "--substituted",
                         help="Substitution in dir names; enter as \"old/new\"")
+    # TODO: actually implement verbosity
     parser.add_argument("-v", "--verbose", help="Show more progress messages",
                         action="store_true")
 
@@ -128,7 +130,7 @@ def find_music(roots: List[str]) -> MusicMap:
 
             for f in cont_files:
                 if f.endswith(".flac"):
-                    print("Music found: {} in {}".format(f, dir_name))
+                    # print("Music found: {} in {}".format(f, dir_name))
                     music_dirs.append((dir_name, cont_files))
                     break
 
@@ -387,7 +389,7 @@ def error_exit(message: str) -> None:
 if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
-    print(args.dirs)
+    # print(args.dirs)
 
     # Check whether encoders are present on the system
     ex_v = check_executables(CODECS)
