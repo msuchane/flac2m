@@ -339,6 +339,14 @@ def create_conversion_command(infile: str, outfile: str,
 
     return command
 
+def check_access(path, write=False):
+    acc = os.access
+
+    if write:
+        return acc(path, os.W_OK) and acc(path, os.X_OK)
+    else:
+        return acc(path, os.R_OK) and acc(path, os.X_OK)
+
 def run_conversion_command(in_out_list: InOutList,
                            args: argparse.Namespace,
                            codec_props: CodecProps) -> None:
@@ -368,6 +376,11 @@ if __name__ == "__main__":
     if args.info:
         print(codecs_info(CODECS))
         sys.exit()
+
+    # Check whether the output dir is accesible for writes
+    if not check_access(args.output, write=True):
+        sys.exit("{}: error: Cannot write to output directory ‘{}’".format(
+            sys.argv[0], args.output))
 
     # The selected codec to convert to
     sel_codec = args.codec
