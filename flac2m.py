@@ -304,6 +304,13 @@ def create_conversion_command(infile: str, outfile: str,
 
     return command
 
+def run_conversion_command(in_out_list: InOutList,
+                           args: argparse.Namespace,
+                           codec_props: CodecProps) -> None:
+    for infile, outfile in in_out_list:
+        comm = create_conversion_command(infile, outfile, args, codec_props)
+        process = sp.run(comm)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -351,4 +358,6 @@ if __name__ == "__main__":
         print(create_conversion_command(infile, outfile, args, codec_props))
     # print(greatest_common_dir([t[0] for t in m]))
     # print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
+
+    run_conversion_command(in_out_list, args, codec_props)
 
