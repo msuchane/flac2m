@@ -88,3 +88,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Default directory for flac2m lossy music output
+flac2m_output
