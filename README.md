@@ -1,6 +1,6 @@
 ## flac2m (Flac to Many): A Music Library Converter ##
 
-flac2m is a command-line tool written in Python that converts FLAC music files into a lossless format, preserving the directory structure.
+flac2m is a command-line tool written in Python that converts FLAC music files into a lossy format, preserving the original directory structure.
 
 
 ### Usage ###
@@ -18,4 +18,6 @@ flac2m is easily extensible to recognize new codecs and their encoders. Further 
 ### Requirements ###
 
 flac2m requires Python 3.5 or higher to run. It only utilizes the standard library. Encoders (at least one of `lame`, `oggenc` and `opusenc`) need to be installed for flac2m to be useful.
+
+flac2m has only been tested on Linux but can probably run on macOS if the listed encoders can be found in $PATH.
 
