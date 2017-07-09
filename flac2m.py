@@ -97,7 +97,7 @@ CODECS = {
     }
 }
 
-VersionList = List[Tuple[str, str]]    # Tuples ofencoder name and its version
+VersionList = List[Tuple[str, str]]    # Tuples of encoder name and its version
 def check_executables(codecs: CodecsDict) -> VersionList:
     versions_result = []
 
