@@ -3,6 +3,7 @@ import sys
 import argparse
 import subprocess as sp
 from typing import Any, Dict, List, Tuple
+from shutil import copyfile
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
@@ -450,4 +451,14 @@ if __name__ == "__main__":
     # print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
 
     run_conversion_command(in_out_list, args, codec_props)
+
+    # If the --copy option has been selected, process files to copy
+    if args.copy:
+        print("Copying unmodified files…")
+        in_out_list_copy = create_in_out_paths(music_map, args.output,
+                                               subsf, subsd, copy=True,
+                                               c_template = args.copy)
+
+        for infile, outfile in in_out_list_copy:
+            copyfile(infile, outfile)
 
