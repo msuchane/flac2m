@@ -141,7 +141,7 @@ def create_in_out_paths(music_map: MusicMap, out_root: str,
                 f.replace(old, new)
 
             in_path = os.path.join(dir_path, f)
-            out_path = os.path.join(out_root, unique_path, f)
+            out_path = os.path.join(os.path.abspath(out_root), unique_path, f)
 
             in_out_list.append((in_path, out_path))
 
