@@ -1,120 +1,17 @@
+#!/usr/bin/env python3
+
 import os
 import sys
-import argparse
 import subprocess as sp
+import argparse
 from typing import Any, Dict, List, Tuple
 from shutil import copyfile
 
-def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-    exgroup = parser.add_mutually_exclusive_group()
+from cmdline import create_parser
+from audio_codecs import CODECS, \
+    CodecProps, VersionList, \
+    check_executables, codecs_info
 
-    exgroup.add_argument("-b", "--bitrate", type=int,
-                         help="Constant bitrate for lossy audio")
-    parser.add_argument("-c", "--codec", choices=["mp3", "oggvorbis", "opus"],
-                        default="opus",
-                        help="Audio codec to convert FLAC files into")
-    # TODO: actually implement copying
-    parser.add_argument("-C", "--copy", nargs="*",
-                        help="Filenames to copy over unchanged "\
-                             "(useful for cover images)")
-    parser.add_argument("dirs", nargs="*", default=["."],
-                        help="Directories to search for FLAC files")
-    parser.add_argument("-i", "--info", action="store_true",
-                        help="Show detailed info on codecs/qualities and quit")
-    parser.add_argument("-o", "--output", default="flac2m_output",
-                        help="Output directory")
-    exgroup.add_argument("-p", "--preset",
-                         choices=["default", "low", "transp", "high"],
-                         help="Quality preset: default for encoder, low/OK, "
-                              "just transparent, high")
-    exgroup.add_argument("-q", "--quality", type=int,
-                         help="Variable bitrate quality; 1=low, 5=high")
-    parser.add_argument("-s", "--substitutef",
-                        help="Substitution in filenames; enter as \"old/new\"")
-    parser.add_argument("-S", "--substituted",
-                        help="Substitution in dir names; enter as \"old/new\"")
-    # TODO: actually implement verbosity
-    parser.add_argument("-v", "--verbose", help="Show more progress messages",
-                        action="store_true")
-
-    return parser
-
-CodecProps = Dict[str, Any]                 # Keywords as strings, their
-                                            # values of any type
-CodecsDict = Dict[str, CodecProps]          # Dict of codec names and their
-                                            # respective properties (also dict)
-CODECS = {
-    "mp3": {
-        "encoder": "lame",
-        "bitrate_arg": ["--cbr", "-b"],
-        "bitrate_max": 320,
-        "bitrate_min": 32,
-        "quality_arg": ["-V"],
-        "quality_max": 0,
-        "quality_min": 6,
-        "preset_default": ["-V4"],      # ~165 kb/s
-        "preset_high": ["-V0"],         # ~245 kb/s
-        "preset_transparent": ["-V3"],  # ~175 kb/s
-        "preset_low": ["-V5"],          # ~130 kb/s
-        "additional_args": [],
-        "output_arg": [],
-        "suffix": "mp3",
-        "version": None     # To be filled in at runtime
-    },
-    "oggvorbis": {
-        "encoder": "oggenc",
-        "bitrate_arg": ["-b"],
-        "bitrate_max": 400,
-        "bitrate_min": 16,
-        "quality_arg": ["-q"],
-        "quality_max": 10,
-        "quality_min": -1,
-        "preset_default": ["-q", "3"],      # ~112 kb/s
-        "preset_high": ["-q", "7"],         # ~224 kb/s
-        "preset_transparent": ["-q", "5"],  # ~160 kb/s
-        "preset_low": ["-q", "3"],          # ~112 kb/s
-        "additional_args": [],
-        "output_arg": ["-o"],
-        "suffix": "ogg",
-        "version": None     # To be filled in at runtime
-    },
-    "opus": {
-        "encoder": "opusenc",
-        "bitrate_arg": ["--cvbr", "--bitrate"],
-        "bitrate_max": 512,
-        "bitrate_min": 12,
-        "quality_arg": ["--vbr", "--bitrate"],
-        "quality_max": 512,
-        "quality_min": 12,
-        "preset_default": ["--bitrate", "96"],
-        "preset_high": ["--bitrate", "192"],
-        "preset_transparent": ["--bitrate", "112"],
-        "preset_low": ["--bitrate", "82"],
-        "additional_args": ["--framesize=60"],
-        "output_arg": [],
-        "suffix": "opus",
-        "version": None     # To be filled in at runtime
-    }
-}
-
-VersionList = List[Tuple[str, str]]    # Tuples of encoder name and its version
-def check_executables(codecs: CodecsDict) -> VersionList:
-    versions_result = []
-
-    for codec in codecs:
-        encoder = codecs.get(codec).get("encoder")
-
-        try:
-            enc_process = sp.run([encoder, "--version"], stdout=sp.PIPE)
-        except FileNotFoundError:
-            print("{} encoder not found".format(encoder))
-            versions_result.append((codec, "MISSING"))
-        else:
-            version_str = enc_process.stdout.decode("utf-8")
-            versions_result.append((codec, version_str.split("\n")[0]))
-
-    return versions_result
 
 MusicDir = Tuple[str, List[str]]    # A tuple of dir name and all of its files
 MusicMap = List[MusicDir]           # List of dirs containing music
@@ -182,38 +79,6 @@ def greatest_common_dir(directories: List[str]) -> str:
     common_path = "/".join(common_elements)
 
     return common_path
-
-def codecs_info(codecs_dict: CodecsDict) -> str:
-    info = []
-
-    for k in codecs_dict:
-        v = codecs_dict.get(k)
-
-        if v["version"] == "MISSING":
-            m = "Codec: {}\n"\
-                "Encoder not found. You need to install "\
-                "the ‘{}’ program.\n".format(k, v["encoder"])
-            info.append(m)
-        else:
-            m = "Codec: {}\n"\
-                "Encoder: {}\n"\
-                "Constant bitrate from {} to {} kb/s\n"\
-                "Variable bitrate quality from {} (min) to {} (max)\n"\
-                "Presets:\n"\
-                "    encoder default: {}\n"\
-                "    high:            {}\n"\
-                "    transparent:     {}\n"\
-                "    low:             {}\n".format(
-                    k, v["version"], v["bitrate_min"], v["bitrate_max"],
-                    v["quality_min"], v["quality_max"],
-                    # These arguments are stored as lists; concatenate them
-                    " ".join(v["preset_default"]),
-                    " ".join(v["preset_high"]),
-                    " ".join(v["preset_transparent"]),
-                    " ".join(v["preset_low"]))
-            info.append(m)
-
-    return "\n".join(info)
 
 def get_flac_files(all_files: List[str]) -> List[str]:
     flacs = [f for f in all_files if f.endswith("flac")]
@@ -393,7 +258,7 @@ if __name__ == "__main__":
     # print(args.dirs)
 
     # Check whether encoders are present on the system
-    ex_v = check_executables(CODECS)
+    ex_v: VersionList = check_executables(CODECS)
 
     # Update codecs dict with encoder versions
     for c, v in ex_v:
@@ -457,7 +322,7 @@ if __name__ == "__main__":
         print("Copying unmodified files…")
         in_out_list_copy = create_in_out_paths(music_map, args.output,
                                                subsf, subsd, copy=True,
-                                               c_template = args.copy)
+                                               c_template=args.copy)
 
         for infile, outfile in in_out_list_copy:
             copyfile(infile, outfile)
