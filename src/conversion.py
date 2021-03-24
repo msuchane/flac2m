@@ -3,6 +3,7 @@
 import argparse
 import os
 import subprocess as sp
+from multiprocessing import Pool
 from typing import List
 
 from common import error_exit
@@ -66,31 +67,57 @@ def create_conversion_command(infile: str, outfile: str,
 
     return command
 
-def run_conversion_command(in_out_list: InOutList,
-                           args: argparse.Namespace,
-                           codec_props: CodecProps) -> None:
+def report_file(new: str, placing: int, total: int) -> str:
+    file_name = os.path.basename(new)
+    report = f"Converting file {placing}/{total}: {file_name}"
+
+    return report
+
+def convert_file(target: dict) -> None:
+    # Notify about the processed file
+    print(target["report"])
+
+    # Create the output directories if necessary
+    out_dir = os.path.dirname(target["new"])
+    os.makedirs(out_dir, exist_ok=True)
+
+    try:
+        process = sp.run(target["command"],
+                         stdout=sp.DEVNULL,
+                         stderr=sp.PIPE,
+                         check=True)
+    except Exception as e:
+        # Conversion failed somehow. Show the most recent encoder output
+        # and the exception that happened.
+        error_exit("{}\n\n{}".format(process.stderr.decode("utf-8"), e))
+
+def convert_all_files(in_out_list: InOutList,
+                      args: argparse.Namespace,
+                      codec_props: CodecProps) -> None:
     file_count = len(in_out_list)
+    quality_option = create_quality_option(args, codec_props)
+
+    # Prepare the metadata for the whole conversion
+    conversion_targets = []
 
     for index, in_out in enumerate(in_out_list):
         infile, outfile = in_out
-        print("Converting file {} out of {}…".format(index+1, file_count))
 
-        # Creating directories if necessary
-        out_dir = os.path.split(outfile)[0]
-        quality_option = create_quality_option(args, codec_props)
-        os.makedirs(out_dir, exist_ok=True)
+        target = {
+            "orig": infile,
+            "new": outfile,
+            "placing": index,
+            "total": file_count,
+            "quality": quality_option,
+            "report": report_file(outfile, index, file_count),
+            "command": create_conversion_command(infile,
+                                                 outfile,
+                                                 quality_option,
+                                                 codec_props),
+        }
 
-        comm = create_conversion_command(infile, outfile,
-                                         quality_option, codec_props)
-        try:
-            process = sp.run(comm, stdout=sp.DEVNULL, stderr=sp.PIPE)
-        except Exception as e:
-            # Conversion failed somehow. Show most recent encoder output
-            # and the Python exception that happened.
-            error_exit("{}\n\n{}".format(process.stderr.decode("utf-8"), e))
+        conversion_targets.append(target)
 
-        # If the encoder itself failed, stop the conversion and show
-        # its error message:
-        if process.returncode != 0:
-            error_exit("Encoding file ‘{}’ failed:\n\n{}".format(
-                infile, process.stderr.decode("utf-8")))
+    # Run the conversion in parallel
+    pool = Pool(4)
+    pool.map(convert_file, conversion_targets)

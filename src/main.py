@@ -9,7 +9,7 @@ from cmdline import create_parser
 from audio_codecs import CODECS, VersionList, check_executables, codecs_info
 from paths import find_music, evaluate_substitution, create_in_out_paths, \
     check_access
-from conversion import run_conversion_command
+from conversion import convert_all_files
 
 
 def main() -> None:
@@ -75,7 +75,7 @@ def main() -> None:
     # print(greatest_common_dir([t[0] for t in m]))
     # print(create_conversion_command("/home/me/song.flac", "/usb/music/song", args))
 
-    run_conversion_command(in_out_list, args, codec_props)
+    convert_all_files(in_out_list, args, codec_props)
 
     # If the --copy option has been selected, process files to copy
     if args.copy:
