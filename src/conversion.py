@@ -122,5 +122,5 @@ def convert_all_files(in_out_list: InOutList,
     cpus = len(os.sched_getaffinity(0))
 
     # Run the conversion in parallel
-    pool = Pool(cpus)
-    pool.map(convert_file, conversion_targets)
+    with Pool(cpus) as pool:
+        pool.imap(convert_file, conversion_targets)
