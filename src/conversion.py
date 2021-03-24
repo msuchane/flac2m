@@ -123,4 +123,4 @@ def convert_all_files(in_out_list: InOutList,
 
     # Run the conversion in parallel
     with Pool(cpus) as pool:
-        pool.imap(convert_file, conversion_targets)
+        pool.map(convert_file, conversion_targets, chunksize=cpus)
