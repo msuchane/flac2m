@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import List, Tuple
+import os
 
 MusicDir = Tuple[str, List[str]]    # A tuple of dir name and all of its files
 MusicMap = List[MusicDir]           # List of dirs containing music
