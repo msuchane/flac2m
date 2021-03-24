@@ -3,6 +3,8 @@
 from typing import List, Tuple
 import os
 
+from common import error_exit
+
 MusicDir = Tuple[str, List[str]]    # A tuple of dir name and all of its files
 MusicMap = List[MusicDir]           # List of dirs containing music
 
@@ -144,3 +146,11 @@ def create_in_out_paths(music_map: MusicMap, out_root: str,
             in_out_list.append((in_path, out_path))
 
     return in_out_list
+
+def check_access(path, write=False):
+    acc = os.access
+
+    if write:
+        return acc(path, os.W_OK) and acc(path, os.X_OK)
+    else:
+        return acc(path, os.R_OK) and acc(path, os.X_OK)
