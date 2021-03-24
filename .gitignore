@@ -89,5 +89,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# mypy cache files
+.mypy_cache
+
 # Default directory for flac2m lossy music output
 flac2m_output
