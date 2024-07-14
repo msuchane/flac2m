@@ -1,23 +1,62 @@
-## flac2m (Flac to Many): A Music Library Converter ##
+## flac2m (FLAC to Many)
 
-flac2m is a command-line tool written in Python that converts FLAC music files into a lossy format, preserving the original directory structure.
+A music library converter.
 
+`flac2m` is a command-line tool that converts FLAC music files into a given lossy format. It preserves the original, nested directory structure. It is intended for converting a large FLAC library, such as when you want to copy it to a portable device with limited storage.
 
-### Usage ###
-
-\<to be written\>
-
-
-### Supported Codecs and Encoders ####
-
-Currently, flac2m supports creating MP3, OGG Vorbis and Opus files using `lame`, `oggenc` and `opusenc`, respectively. The stand-alone command-line programs need to be installed (flac2m doesn't interface with their library API). If an encoder is not present on your system, flac2m will run but will not be able to convert to the respective codec.
-
-flac2m is easily extensible to recognize new codecs and their encoders. Further options can be added in the future.
+The conversion runs in parallel on all your CPUs.
 
 
-### Requirements ###
+### Usage
 
-flac2m requires Python 3.5 or higher to run. It only utilizes the standard library. Encoders (at least one of `lame`, `oggenc` and `opusenc`) need to be installed for flac2m to be useful.
+```
+$ flac2m <flac-library> -o <output-directory> -c {mp3,oggvorbis,opus}
+```
 
-flac2m has only been tested on Linux but can probably run on macOS if the listed encoders can be found in $PATH.
+Other options:
 
+`-b, --bitrate <BITRATE>`
+: Constant bitrate for lossy audio
+
+`-C, --copy <FILES>`
+: Filenames to copy over unchanged (useful for cover images)
+
+`-i, --info`
+: Show detailed info on codecs/qualities and quit
+
+`-p, --preset {default,low,transp,high}`
+: Quality preset: default for encoder, low/OK, just transparent, high
+
+`-q, --quality QUALITY`
+: Variable bitrate quality; 1=low, 5=high
+
+`-s, --substitutef <SUBSTITUTION>`
+: Substitution in file names; enter as `old/new`
+
+`-S, --substituted <SUBSTITUTION>`
+: Substitution in directory names; enter as `old/new`
+
+
+### Supported codecs
+
+Currently, `flac2m` supports creating MP3, OGG Vorbis, and Opus (default) files.
+
+The program is easily extensible to recognize new codecs and their encoders. Further options can be added in the future.
+
+
+### Dependencies
+
+* Python 3.5 or higher
+
+* Encoders:
+
+    * `lame` for MP3
+    * `oggenc` for OGG Vorbis
+    * `opusenc` for Opus
+
+    If the encoder is not present on your system, `flac2m` will not be able to convert to the given codec.
+
+* Operating systems:
+
+    * `flac2m` has only been tested on Linux.
+    * It can probably run on macOS if the required encoders are available in `$PATH`.

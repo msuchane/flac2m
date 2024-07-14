@@ -11,11 +11,10 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-c", "--codec", choices=["mp3", "oggvorbis", "opus"],
                         default="opus",
                         help="Audio codec to convert FLAC files into")
-    # TODO: actually implement copying
     parser.add_argument("-C", "--copy", nargs="*",
                         help="Filenames to copy over unchanged "\
                              "(useful for cover images)")
-    parser.add_argument("dirs", nargs="*", default=["."],
+    parser.add_argument("dirs", nargs="+",
                         help="Directories to search for FLAC files")
     parser.add_argument("-i", "--info", action="store_true",
                         help="Show detailed info on codecs/qualities and quit")
@@ -28,9 +27,9 @@ def create_parser() -> argparse.ArgumentParser:
     exgroup.add_argument("-q", "--quality", type=int,
                          help="Variable bitrate quality; 1=low, 5=high")
     parser.add_argument("-s", "--substitutef",
-                        help="Substitution in filenames; enter as \"old/new\"")
+                        help="Substitution in file names; enter as \"old/new\"")
     parser.add_argument("-S", "--substituted",
-                        help="Substitution in dir names; enter as \"old/new\"")
+                        help="Substitution in directory names; enter as \"old/new\"")
     # TODO: actually implement verbosity
     parser.add_argument("-v", "--verbose", help="Show more progress messages",
                         action="store_true")
