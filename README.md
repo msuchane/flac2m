@@ -15,26 +15,33 @@ $ flac2m <flac-library> -o <output-directory> -c {mp3,oggvorbis,opus}
 
 Other options:
 
-`-b, --bitrate <BITRATE>`
-: Constant bitrate for lossy audio
+* `-b, --bitrate <BITRATE>`
 
-`-C, --copy <FILES>`
-: Filenames to copy over unchanged (useful for cover images)
+    Constant bitrate for lossy audio
 
-`-i, --info`
-: Show detailed info on codecs/qualities and quit
+* `-C, --copy <FILES>`
 
-`-p, --preset {default,low,transp,high}`
-: Quality preset: default for encoder, low/OK, just transparent, high
+    Filenames to copy over unchanged (useful for cover images)
 
-`-q, --quality QUALITY`
-: Variable bitrate quality; 1=low, 5=high
+* `-i, --info`
 
-`-s, --substitutef <SUBSTITUTION>`
-: Substitution in file names; enter as `old/new`
+    Show detailed info on codecs/qualities and quit
 
-`-S, --substituted <SUBSTITUTION>`
-: Substitution in directory names; enter as `old/new`
+* `-p, --preset {default,low,transp,high}`
+
+    Quality preset: default for encoder, low/OK, just transparent, high
+
+* `-q, --quality QUALITY`
+
+    Variable bitrate quality; 1=low, 5=high
+
+* `-s, --substitutef <SUBSTITUTION>`
+
+    Substitution in file names; enter as `old/new`
+
+* `-S, --substituted <SUBSTITUTION>`
+
+    Substitution in directory names; enter as `old/new`
 
 
 ### Supported codecs
